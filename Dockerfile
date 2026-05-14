@@ -3,6 +3,10 @@ FROM maven:3.9-eclipse-temurin-21 AS maven-build
 
 ARG MAVEN_CLI_OPTS="-DskipTests --no-transfer-progress"
 
+# libicu74 is required by the Kiota .NET tool used during the JS (admin-client) build.
+# The maven:3.9-eclipse-temurin-21 image is based on Ubuntu 24.04 where the package is libicu74.
+RUN apt-get update -qq && apt-get install -y --no-install-recommends libicu74 && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /build
 
 # Copy the full source tree into the build context
