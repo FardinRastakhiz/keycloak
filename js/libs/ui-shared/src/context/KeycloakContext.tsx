@@ -82,6 +82,7 @@ export const KeycloakProvider = <T extends BaseEnvironment>({
         onLoad: "login-required",
         pkceMethod: "S256",
         responseMode: "query",
+        checkLoginIframe: false,
         scope: environment.scope,
       });
 
