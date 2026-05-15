@@ -49,6 +49,8 @@ RUN echo "keycloak:x:0:root" >> /etc/group && \
 
 USER 1000
 
+RUN /opt/keycloak/bin/kc.sh build --db=postgres
+
 EXPOSE 8080
 EXPOSE 8443
 EXPOSE 9000
