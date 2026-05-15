@@ -40,6 +40,7 @@ services:
       KC_HOSTNAME: "${KC_HOSTNAME:-https://auth.fictionhive.com}"
     command:
       - start
+      - --optimized
       - --http-enabled=true
       - --proxy-headers=xforwarded
     ports:

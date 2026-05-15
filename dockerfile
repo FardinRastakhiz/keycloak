@@ -13,43 +13,29 @@ WORKDIR /build
 COPY . .
 
 # Build only the distribution module and its transitive dependencies,
-# then move the resulting archive to a well-known path for the next stage.
+# then unpack the resulting archive to a well-known path for the next stage.
 RUN ./mvnw ${MAVEN_CLI_OPTS} -pl quarkus/dist -am clean package && \
-    mv quarkus/dist/target/keycloak-*.tar.gz /build/keycloak-dist.tar.gz
+    mkdir -p /build/keycloak && \
+    tar -xzf quarkus/dist/target/keycloak-*.tar.gz -C /build/keycloak --strip-components=1 && \
+    mkdir -p /build/keycloak/data && \
+    chmod -R g+rwX /build/keycloak
 
-# ---- Stage 2: Unpack the distribution and install runtime deps into a chroot ----
-FROM registry.access.redhat.com/ubi9 AS ubi-micro-build
-
-RUN dnf install -y tar gzip
-
-COPY --from=maven-build /build/keycloak-dist.tar.gz /tmp/keycloak/keycloak-dist.tar.gz
-
-RUN cd /tmp/keycloak && \
-    tar -xvf keycloak-dist.tar.gz && \
-    rm keycloak-dist.tar.gz
-
-RUN mv /tmp/keycloak/keycloak-* /opt/keycloak && mkdir -p /opt/keycloak/data
-RUN chmod -R g+rwX /opt/keycloak
-
-COPY quarkus/container/ubi-null.sh /tmp/
-RUN bash /tmp/ubi-null.sh java-21-openjdk-headless glibc-langpack-en findutils
-
-# ---- Stage 3: Minimal runtime image ----
-FROM registry.access.redhat.com/ubi9-micro
-ENV LANG=en_US.UTF-8
+# ---- Stage 2: Runtime image with a prebuilt optimized Keycloak distribution ----
+FROM eclipse-temurin:21-jre-jammy
+ENV LANG=C.UTF-8
 
 # Flag for determining app is running in container
 ENV KC_RUN_IN_CONTAINER=true
 
-COPY --from=ubi-micro-build /tmp/null/rootfs/ /
-COPY --from=ubi-micro-build --chown=1000:0 /opt/keycloak /opt/keycloak
+COPY --from=maven-build --chown=1000:0 /build/keycloak /opt/keycloak
 
-RUN echo "keycloak:x:0:root" >> /etc/group && \
-    echo "keycloak:x:1000:0:keycloak user:/opt/keycloak:/sbin/nologin" >> /etc/passwd
+RUN useradd --uid 1000 --gid 0 --home-dir /opt/keycloak --shell /usr/sbin/nologin keycloak
 
 USER 1000
 
-RUN /opt/keycloak/bin/kc.sh build --db=postgres
+RUN /opt/keycloak/bin/kc.sh build --db=postgres --health-enabled=true --metrics-enabled=true
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 CMD bash -c "{ printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000"
 
 EXPOSE 8080
 EXPOSE 8443
