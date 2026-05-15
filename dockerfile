@@ -35,7 +35,7 @@ USER 1000
 
 RUN /opt/keycloak/bin/kc.sh build --db=postgres --health-enabled=true --metrics-enabled=true
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 CMD bash -c "{ printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=5 CMD ["/usr/bin/bash", "-c", "{ printf 'HEAD /health/ready HTTP/1.0\\r\\n\\r\\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000"]
 
 EXPOSE 8080
 EXPOSE 8443
