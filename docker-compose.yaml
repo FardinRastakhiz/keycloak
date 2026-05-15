@@ -43,8 +43,8 @@ services:
       - --http-enabled=true
       - --proxy-headers=xforwarded
     ports:
-      - "8080:8080"
-      - "127.0.0.1:9000:9000"
+      - "48080:8080"
+      - "127.0.0.1:49000:9000"
     networks:
       - keycloak-network
 
