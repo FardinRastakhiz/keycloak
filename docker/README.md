@@ -9,7 +9,9 @@ and imports the `identity-service` realm from `realm-export.json` on first start
 
 ```bash
 cd docker
-cp .env.example .env        # optional, defaults work for local development
+cp .env.example .env
+# set KC_ADMIN_CLIENT_SECRET and KC_CLIENT_SECRET in .env, e.g.:
+#   openssl rand -hex 24
 docker compose up --build   # first build takes a while (Maven + admin console)
 ```
 
@@ -32,7 +34,9 @@ Then open:
 - `KC_HTTP_ENABLED=true` and `KC_HOSTNAME_STRICT=false` are development settings.
   For a public deployment put a TLS-terminating reverse proxy in front and set
   `KC_HOSTNAME` to the public URL.
-- The realm contains development client secrets (`identity-service-admin`,
-  `identity-service-client`). Rotate them before using the realm anywhere public.
+- `realm-export.json` contains no secrets. The `identity-service-admin` and
+  `identity-service-client` secrets are `${KC_ADMIN_CLIENT_SECRET}` / `${KC_CLIENT_SECRET}`
+  placeholders that Keycloak resolves from the environment during import, so they live only
+  in the git-ignored `docker/.env`.
 - To rebuild the image after source changes: `docker compose build` (the Maven
   repository is kept in a BuildKit cache mount, so rebuilds are much faster).

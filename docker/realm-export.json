@@ -1613,7 +1613,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "secret": "local_dev_kc_admin_secret_e17a05",
+      "secret": "${KC_ADMIN_CLIENT_SECRET}",
       "redirectUris": [],
       "webOrigins": [],
       "notBefore": 0,
@@ -1750,7 +1750,7 @@
         "offline_access",
         "microprofile-jwt"
       ],
-      "secret": "local_dev_kc_client_secret_4b8d21"
+      "secret": "${KC_CLIENT_SECRET}"
     },
     {
       "id": "bff6aa51-dc59-41f6-9999-6a4659b8312d",
