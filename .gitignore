@@ -102,3 +102,7 @@ quarkus/data/*.db
 # Keycloak state dir as suggested in the docs
 # -Dkc.home.dir=.kc
 .kc
+
+# Docker compose secrets #
+##########################
+docker/.env
