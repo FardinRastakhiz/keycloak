@@ -1,0 +1,12 @@
+# Build context for docker/Dockerfile is the repository root.
+.git
+.github
+**/target
+**/node_modules
+**/.pnpm-store
+**/dist/**/*.tar.gz
+**/dist/**/*.zip
+docker/
+*.iml
+.idea
+.vscode
