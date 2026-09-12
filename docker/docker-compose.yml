@@ -39,12 +39,17 @@ services:
       KC_HOSTNAME_STRICT: "false"
       KC_PROXY_HEADERS: ${KC_PROXY_HEADERS:-xforwarded}
       KC_LOG_LEVEL: ${KC_LOG_LEVEL:-info}
+      # Theme caching off so edits under themes/ are picked up on reload
+      KC_SPI_THEME_CACHE_THEMES: ${KC_SPI_THEME_CACHE_THEMES:-false}
+      KC_SPI_THEME_CACHE_TEMPLATES: ${KC_SPI_THEME_CACHE_TEMPLATES:-false}
+      KC_SPI_THEME_STATIC_MAX_AGE: ${KC_SPI_THEME_STATIC_MAX_AGE:--1}
       # Client secrets substituted into realm-export.json on import (required, see .env.example)
       KC_ADMIN_CLIENT_SECRET: ${KC_ADMIN_CLIENT_SECRET:?set KC_ADMIN_CLIENT_SECRET in docker/.env}
       KC_CLIENT_SECRET: ${KC_CLIENT_SECRET:?set KC_CLIENT_SECRET in docker/.env}
     volumes:
       # Realms in this directory are imported on startup (existing realms are skipped)
       - ./realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
+      - ../themes/shokoofa-theme:/opt/keycloak/themes/shokoofa-theme:ro
     ports:
       - "${KC_HTTP_PORT:-8080}:8080"
       - "${KC_MGMT_PORT:-9000}:9000"

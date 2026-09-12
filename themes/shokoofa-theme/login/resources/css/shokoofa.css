@@ -1,0 +1,767 @@
+/* =========================================================================
+   Shokoofa AI - Keycloak login theme
+   Layered on top of keycloak.v2 (PatternFly v5). Only overrides/additions
+   live here; everything else is inherited from the parent theme.
+
+   Layout notes for future edits:
+     - `login-pf` is on <html>, NOT on <body> (see keycloak.v2 template.ftl).
+     - <body> carries id="keycloak-bg"; the wrapper is div.pf-v5-c-login.
+     - The background is composed of 5 stacked layers, see "Ambient background".
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   Design tokens
+   ------------------------------------------------------------------------- */
+:root {
+    /* Brand palette sampled from the Shokoofa AI blossom mark */
+    --sh-blue-900: #002b49;
+    --sh-blue-700: #006b91;
+    --sh-blue-500: #16a1c4;
+    --sh-blue-300: #7ed5e7;
+    --sh-gold: #ffc83d;
+    --sh-ink: #0b2033;
+    --sh-ink-muted: #4a5f70;
+
+    --sh-surface: rgba(255, 255, 255, 0.82);
+    --sh-surface-solid: #ffffff;
+    --sh-border: rgba(255, 255, 255, 0.75);
+    --sh-hairline: rgba(11, 32, 51, 0.1);
+    --sh-danger: #c9190b;
+    --sh-danger-soft: rgba(201, 25, 11, 0.1);
+
+    --sh-radius-xl: 20px;
+    --sh-radius-lg: 14px;
+
+    --sh-gradient: linear-gradient(115deg, var(--sh-blue-900) 0%, var(--sh-blue-700) 48%, var(--sh-blue-500) 100%);
+    --sh-shadow: 0 18px 45px -18px rgba(0, 43, 73, 0.35), 0 2px 8px rgba(0, 43, 73, 0.06);
+
+    --sh-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Set to `none` to run on the coded background alone, without the bitmap. */
+    --sh-bg-image: url('../img/background.png');
+    --sh-bg-tint: linear-gradient(160deg, #f5f9fc 0%, #eef4fa 45%, #fbf7ee 100%);
+
+    --keycloak-card-top-color: transparent;
+
+    font-synthesis: none;
+}
+
+/* -------------------------------------------------------------------------
+   Ambient background
+   Layer 0  html          - bitmap + tint (static)
+   Layer 1  body::before  - cool aurora blobs
+   Layer 2  body::after   - warm accent blob, counter motion
+   Layer 3  login::before - engineering mesh, radially masked (static)
+   Layer 4  login::after  - rising bokeh field
+
+   Every moving layer animates `transform` only, so the compositor handles it
+   without repainting. Deliberately no `filter: blur()` here - blurring a
+   full-screen animated layer forces a re-rasterisation on every frame.
+   ------------------------------------------------------------------------- */
+html.login-pf {
+    min-height: 100%;
+    background: var(--sh-bg-image) no-repeat center center fixed, var(--sh-bg-tint);
+    background-size: cover, cover;
+}
+
+/* Neutralise the parent theme's background so our layers stay visible. */
+.login-pf body {
+    background: none;
+    min-height: 100%;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji";
+    color: var(--sh-ink);
+    overflow-x: hidden;
+}
+
+#keycloak-bg::before,
+#keycloak-bg::after,
+.pf-v5-c-login::before,
+.pf-v5-c-login::after {
+    content: "";
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    background-repeat: no-repeat;
+}
+
+/* Layer 1 - cool aurora. The gradients fall off to zero, which reads as a
+   blur without costing one. */
+#keycloak-bg::before {
+    inset: -25vmax -18vmax;
+    background-image:
+        radial-gradient(closest-side circle, rgba(22, 161, 196, 0.42), rgba(22, 161, 196, 0) 100%),
+        radial-gradient(closest-side circle, rgba(0, 107, 145, 0.36), rgba(0, 107, 145, 0) 100%);
+    background-size: 72vmax 72vmax, 60vmax 60vmax;
+    background-position: 6% 10%, 68% 84%;
+    animation: sh-drift-a 36s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+/* Layer 2 - warm accent drifting the other way. */
+#keycloak-bg::after {
+    inset: -25vmax -18vmax;
+    background-image:
+        radial-gradient(closest-side circle, rgba(255, 200, 61, 0.32), rgba(255, 200, 61, 0) 100%);
+    background-size: 54vmax 54vmax;
+    background-position: 86% 14%;
+    animation: sh-drift-b 44s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+/* Layer 3 - technical mesh, faded towards the edges. Static on purpose. */
+.pf-v5-c-login::before {
+    inset: 0;
+    background-image:
+        linear-gradient(to right, rgba(0, 43, 73, 0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 43, 73, 0.06) 1px, transparent 1px);
+    background-size: 46px 46px, 46px 46px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 0%, transparent 78%);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 0%, transparent 78%);
+}
+
+/* Layer 4 - bokeh field rising in a seamless loop (both tiles are 320px tall,
+   so a 320px shift returns to the starting frame). */
+.pf-v5-c-login::after {
+    inset: -320px 0;
+    background-image:
+        radial-gradient(circle, rgba(0, 107, 145, 0.3) 1.5px, transparent 2px),
+        radial-gradient(circle, rgba(22, 161, 196, 0.22) 2.2px, transparent 3px);
+    background-size: 170px 320px, 265px 320px;
+    background-position: 0 0, 80px 40px;
+    opacity: 0.6;
+    animation: sh-rise 55s linear infinite;
+    will-change: transform;
+}
+
+@keyframes sh-drift-a {
+    from {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+        transform: translate3d(6vw, 4vh, 0) scale(1.08);
+    }
+}
+
+@keyframes sh-drift-b {
+    from {
+        transform: translate3d(0, 0, 0) scale(1.06);
+    }
+    to {
+        transform: translate3d(-7vw, 5vh, 0) scale(0.94);
+    }
+}
+
+@keyframes sh-rise {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        transform: translate3d(0, -320px, 0);
+    }
+}
+
+/* -------------------------------------------------------------------------
+   Page layout - keep everything above the ambient layers
+   ------------------------------------------------------------------------- */
+.pf-v5-c-login {
+    position: relative;
+    isolation: isolate;
+}
+
+.pf-v5-c-login__container {
+    position: relative;
+    z-index: 1;
+    grid-template-columns: minmax(auto, 25.5rem);
+    grid-template-areas: "header" "main";
+    padding: 1rem;
+    gap: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Header / brand mark
+   ------------------------------------------------------------------------- */
+.pf-v5-c-login__header {
+    margin-bottom: 0.9rem;
+    animation: sh-fade-down 0.7s var(--sh-ease) both;
+}
+
+#kc-header-wrapper {
+    display: block;
+    width: 100%;
+    max-width: 190px;
+    height: 44px;
+    margin: 0 auto;
+    background-image: url('../img/CompanyLogo.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    /* The parent theme prints the realm display name here; hide the text. */
+    text-indent: -9999px;
+    overflow: hidden;
+    color: transparent !important;
+    font-size: 0 !important;
+    letter-spacing: normal !important;
+    transition: transform 0.4s var(--sh-ease);
+}
+
+#kc-header-wrapper:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+/* -------------------------------------------------------------------------
+   Card
+   ------------------------------------------------------------------------- */
+.pf-v5-c-login__main {
+    position: relative;
+    z-index: 1;
+    background: var(--sh-surface);
+    /* Kept modest: the backdrop is re-filtered on every frame of the ambient
+       animation, and the cost scales with the blur radius. */
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    backdrop-filter: blur(12px) saturate(150%);
+    border: 1px solid var(--sh-border);
+    border-top: none;
+    border-radius: var(--sh-radius-xl);
+    box-shadow: var(--sh-shadow);
+    overflow: hidden;
+    animation: sh-card-in 0.75s var(--sh-ease) both;
+}
+
+/* Animated accent rail along the top edge of the card. */
+.pf-v5-c-login__main::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(
+        90deg,
+        var(--sh-blue-900),
+        var(--sh-blue-700),
+        var(--sh-blue-500),
+        var(--sh-gold),
+        var(--sh-blue-500),
+        var(--sh-blue-700),
+        var(--sh-blue-900)
+    );
+    background-size: 300% 100%;
+    animation: sh-rail 12s linear infinite;
+}
+
+.pf-v5-c-login__main-header {
+    border-top: none;
+    padding: 1.4rem 1.75rem 0.25rem;
+    row-gap: 0.25rem;
+}
+
+.pf-v5-c-login__main-body {
+    padding: 0.5rem 1.75rem 1.25rem;
+}
+
+.pf-v5-c-login__main-footer {
+    padding: 0 1.75rem 1.1rem;
+}
+
+#kc-page-title {
+    font-size: 1.3rem;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: var(--sh-ink);
+}
+
+.pf-v5-c-login__main-footer-band {
+    border-top: 1px solid var(--sh-hairline);
+    padding-top: 0.85rem;
+    font-size: 0.85rem;
+    color: var(--sh-ink-muted);
+}
+
+.pf-v5-c-login__main-footer-band:first-child {
+    margin-block-start: 0.9rem;
+}
+
+/* -------------------------------------------------------------------------
+   Staggered reveal of the card contents
+   ------------------------------------------------------------------------- */
+.pf-v5-c-login__main-body > *,
+.pf-v5-c-login__main-body .pf-v5-c-form > * {
+    animation: sh-fade-up 0.55s var(--sh-ease) both;
+}
+
+.pf-v5-c-login__main-body .pf-v5-c-form > *:nth-child(1) { animation-delay: 0.10s; }
+.pf-v5-c-login__main-body .pf-v5-c-form > *:nth-child(2) { animation-delay: 0.16s; }
+.pf-v5-c-login__main-body .pf-v5-c-form > *:nth-child(3) { animation-delay: 0.22s; }
+.pf-v5-c-login__main-body .pf-v5-c-form > *:nth-child(4) { animation-delay: 0.28s; }
+.pf-v5-c-login__main-body .pf-v5-c-form > *:nth-child(n + 5) { animation-delay: 0.34s; }
+
+/* -------------------------------------------------------------------------
+   Forms - tightened vertical rhythm keeps the card compact
+   ------------------------------------------------------------------------- */
+.pf-v5-c-form {
+    --pf-v5-c-form--GridGap: 0.7rem;
+    gap: 0.7rem;
+}
+
+.pf-v5-c-form__group-label {
+    padding-bottom: 0.25rem;
+}
+
+.pf-v5-c-form__label-text {
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--sh-ink);
+}
+
+.pf-v5-c-form-control {
+    --pf-v5-c-form-control--BorderRadius: var(--sh-radius-lg);
+    border-radius: var(--sh-radius-lg);
+    border: 1px solid rgba(11, 32, 51, 0.14);
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.pf-v5-c-form-control > input,
+.pf-v5-c-form-control > select,
+.pf-v5-c-form-control > textarea,
+.pf-v5-c-form-control > input:focus,
+.pf-v5-c-form-control > select:focus,
+.pf-v5-c-form-control > textarea:focus {
+    outline: none;
+    border-radius: inherit;
+}
+
+.pf-v5-c-form-control:hover {
+    border-color: rgba(22, 161, 196, 0.45);
+}
+
+.pf-v5-c-form-control:focus,
+.pf-v5-c-form-control:focus-within {
+    border-color: var(--sh-blue-500);
+    background-color: var(--sh-surface-solid);
+    box-shadow: 0 0 0 3px rgba(22, 161, 196, 0.18);
+    outline: none;
+}
+
+/* PF paints its own square-cornered border/underline overlays on ::before and
+   ::after; we draw the border on the wrapper itself instead. */
+.pf-v5-c-form-control::before,
+.pf-v5-c-form-control::after {
+    border: 0;
+    border-radius: inherit;
+}
+
+/* Invalid credentials: PF puts `pf-m-error` on the wrapper, not the <input>. */
+.pf-v5-c-form-control.pf-m-error {
+    border-color: var(--sh-danger);
+    background-color: var(--sh-danger-soft);
+    box-shadow: 0 0 0 3px rgba(201, 25, 11, 0.12);
+}
+
+.pf-v5-c-form-control.pf-m-error:focus-within {
+    border-color: var(--sh-danger);
+    background-color: var(--sh-surface-solid);
+    box-shadow: 0 0 0 3px rgba(201, 25, 11, 0.2);
+}
+
+/* The status icon ships top-aligned; centre it against the taller control. */
+.pf-v5-c-form-control__utilities {
+    align-items: center;
+    align-self: center;
+    padding-inline-end: 0.7rem;
+}
+
+.pf-v5-c-form-control__icon.pf-m-status {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    color: var(--sh-danger);
+}
+
+.pf-v5-c-helper-text__item-text.pf-m-error,
+.pf-v5-c-helper-text__item.pf-m-error {
+    margin-top: 0.3rem;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    font-weight: 500;
+    color: var(--sh-danger);
+}
+
+/* Password / attempted-username groups render as one seamless control. */
+.pf-v5-c-input-group > .pf-v5-c-input-group__item:not(:last-child) .pf-v5-c-form-control {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+}
+
+.pf-v5-c-input-group > .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
+    border: 1px solid rgba(11, 32, 51, 0.14);
+    border-inline-start: none;
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    border-start-end-radius: var(--sh-radius-lg);
+    border-end-end-radius: var(--sh-radius-lg);
+    background-color: rgba(255, 255, 255, 0.9);
+    color: var(--sh-ink-muted);
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.pf-v5-c-input-group > .pf-v5-c-input-group__item:last-child .pf-v5-c-button:hover {
+    color: var(--sh-blue-700);
+    background-color: #ffffff;
+}
+
+/* Same square-cornered overlay as the form control, on the show-password button. */
+.pf-v5-c-button.pf-m-control::before,
+.pf-v5-c-button.pf-m-control::after {
+    border: 0;
+    border-radius: inherit;
+}
+
+.pf-v5-c-check__input {
+    accent-color: var(--sh-blue-700);
+}
+
+.pf-v5-c-check__label {
+    font-size: 0.85rem;
+    color: var(--sh-ink-muted);
+}
+
+.pf-v5-c-form__actions,
+#kc-form-buttons {
+    padding-top: 0.25rem;
+}
+
+/* -------------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------------- */
+.pf-v5-c-button {
+    border-radius: var(--sh-radius-lg);
+    font-weight: 600;
+}
+
+.pf-v5-c-button.pf-m-primary {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    background: var(--sh-gradient);
+    background-size: 160% 100%;
+    letter-spacing: 0.01em;
+    box-shadow: 0 8px 18px -8px rgba(0, 107, 145, 0.65);
+    transition: background-position 0.5s var(--sh-ease), transform 0.2s var(--sh-ease),
+        box-shadow 0.25s ease, filter 0.2s ease;
+}
+
+/* Light sweep on hover. */
+.pf-v5-c-button.pf-m-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.32) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.65s var(--sh-ease);
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:focus-visible {
+    background-position: 100% 0;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px -8px rgba(0, 107, 145, 0.7);
+}
+
+.pf-v5-c-button.pf-m-primary:hover::after {
+    transform: translateX(120%);
+}
+
+.pf-v5-c-button.pf-m-primary:active {
+    transform: translateY(0) scale(0.995);
+    filter: brightness(0.96);
+}
+
+.pf-v5-c-button.pf-m-secondary {
+    border-color: rgba(11, 32, 51, 0.18);
+    background-color: rgba(255, 255, 255, 0.6);
+    color: var(--sh-ink);
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--sh-ease);
+}
+
+.pf-v5-c-button.pf-m-secondary:hover {
+    background-color: rgba(22, 161, 196, 0.1);
+    border-color: var(--sh-blue-500);
+    transform: translateY(-1px);
+}
+
+.pf-v5-c-button.pf-m-link {
+    color: var(--sh-blue-700);
+}
+
+.pf-v5-c-button:focus-visible {
+    outline: 2px solid var(--sh-blue-500);
+    outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   Links
+   ------------------------------------------------------------------------- */
+a {
+    color: var(--sh-blue-700);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--sh-blue-900);
+    text-decoration: underline;
+}
+
+/* -------------------------------------------------------------------------
+   Alerts
+   ------------------------------------------------------------------------- */
+.pf-v5-c-alert {
+    border-radius: var(--sh-radius-lg);
+    animation: sh-fade-up 0.45s var(--sh-ease) both;
+}
+
+/* -------------------------------------------------------------------------
+   Social providers
+   ------------------------------------------------------------------------- */
+#kc-social-providers .pf-v5-c-button,
+.pf-v5-c-login__main-body [class*="kc-social-provider"] {
+    border-radius: var(--sh-radius-lg);
+}
+
+#kc-social-providers h2 {
+    font-size: 0.82rem;
+    color: var(--sh-ink-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Light/dark switch (injected by js/theme-toggle.js)
+   ------------------------------------------------------------------------- */
+.sh-theme-toggle {
+    position: fixed;
+    top: 1rem;
+    inset-inline-end: 1rem;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid var(--sh-border);
+    border-radius: 50%;
+    background: var(--sh-surface);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    backdrop-filter: blur(10px) saturate(150%);
+    color: var(--sh-ink-muted);
+    cursor: pointer;
+    box-shadow: 0 8px 20px -12px rgba(0, 43, 73, 0.5);
+    animation: sh-fade-down 0.7s var(--sh-ease) both;
+    transition: color 0.2s ease, transform 0.25s var(--sh-ease), box-shadow 0.25s ease;
+}
+
+.sh-theme-toggle:hover {
+    color: var(--sh-blue-700);
+    transform: translateY(-1px) rotate(-12deg);
+    box-shadow: 0 12px 24px -12px rgba(0, 43, 73, 0.55);
+}
+
+.sh-theme-toggle:focus-visible {
+    outline: 2px solid var(--sh-blue-500);
+    outline-offset: 2px;
+}
+
+.sh-theme-toggle__icon {
+    grid-area: 1 / 1;
+    transition: opacity 0.3s var(--sh-ease), transform 0.4s var(--sh-ease);
+}
+
+.sh-theme-toggle__icon--moon,
+html.pf-v5-theme-dark .sh-theme-toggle__icon--sun {
+    opacity: 0;
+    transform: scale(0.5) rotate(-90deg);
+}
+
+.sh-theme-toggle__icon--sun,
+html.pf-v5-theme-dark .sh-theme-toggle__icon--moon {
+    opacity: 1;
+    transform: none;
+}
+
+html.pf-v5-theme-dark .sh-theme-toggle:hover {
+    color: var(--sh-blue-300);
+}
+
+/* -------------------------------------------------------------------------
+   Keyframes
+   ------------------------------------------------------------------------- */
+@keyframes sh-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes sh-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes sh-fade-down {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes sh-rail {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 300% 0;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   Dark mode
+   ------------------------------------------------------------------------- */
+html.pf-v5-theme-dark {
+    --sh-surface: rgba(10, 27, 41, 0.78);
+    --sh-surface-solid: #0d2233;
+    --sh-border: rgba(255, 255, 255, 0.09);
+    --sh-hairline: rgba(255, 255, 255, 0.1);
+    --sh-danger: #ff9c93;
+    --sh-danger-soft: rgba(255, 92, 76, 0.12);
+    --sh-ink: #eaf3f8;
+    --sh-ink-muted: #9db6c6;
+    --sh-bg-tint: linear-gradient(160deg, #04101a 0%, #08202f 55%, #0c2a3c 100%);
+    --sh-shadow: 0 22px 55px -18px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* The bitmap is a light pastel wash; drop it and let the coded layers carry
+   the dark composition. Stays viewport-sized so it never tiles on tall pages
+   such as registration. */
+html.pf-v5-theme-dark.login-pf {
+    background: var(--sh-bg-tint) no-repeat center center fixed;
+    background-size: cover;
+}
+
+html.pf-v5-theme-dark #keycloak-bg::before {
+    opacity: 0.55;
+}
+
+html.pf-v5-theme-dark #keycloak-bg::after {
+    background-image:
+        linear-gradient(to right, rgba(126, 213, 231, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(126, 213, 231, 0.08) 1px, transparent 1px);
+}
+
+html.pf-v5-theme-dark #kc-header-wrapper {
+    background-image: url('../img/CompanyLogoDark.png');
+}
+
+html.pf-v5-theme-dark .pf-v5-c-form-control {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: var(--sh-ink);
+}
+
+html.pf-v5-theme-dark .pf-v5-c-form-control:focus,
+html.pf-v5-theme-dark .pf-v5-c-form-control:focus-within {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+html.pf-v5-theme-dark .pf-v5-c-form-control.pf-m-error:focus-within {
+    background-color: var(--sh-danger-soft);
+}
+
+html.pf-v5-theme-dark .pf-v5-c-input-group > .pf-v5-c-input-group__item:last-child .pf-v5-c-button {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: var(--sh-ink-muted);
+}
+
+html.pf-v5-theme-dark .pf-v5-c-button.pf-m-secondary {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: var(--sh-ink);
+}
+
+html.pf-v5-theme-dark a,
+html.pf-v5-theme-dark .pf-v5-c-button.pf-m-link {
+    color: var(--sh-blue-300);
+}
+
+html.pf-v5-theme-dark a:hover {
+    color: #ffffff;
+}
+
+/* -------------------------------------------------------------------------
+   Small screens
+   ------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+    .pf-v5-c-login__main {
+        border-radius: var(--sh-radius-lg);
+    }
+
+    .pf-v5-c-login__main-header {
+        padding: 1.15rem 1.15rem 0.25rem;
+    }
+
+    .pf-v5-c-login__main-body {
+        padding: 0.5rem 1.15rem 1.1rem;
+    }
+
+    .pf-v5-c-login__main-footer {
+        padding: 0 1.15rem 1rem;
+    }
+
+    #kc-header-wrapper {
+        max-width: 160px;
+        height: 38px;
+    }
+}
+
+/* Short viewports: shave the remaining vertical padding instead of scrolling. */
+@media (max-height: 700px) {
+    .pf-v5-c-login__header {
+        margin-bottom: 0.6rem;
+    }
+
+    .pf-v5-c-login__main-header {
+        padding-top: 1.1rem;
+    }
+
+    #kc-header-wrapper {
+        height: 38px;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   Accessibility - honour the OS "reduce motion" setting
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+}

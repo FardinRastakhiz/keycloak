@@ -1,0 +1,266 @@
+/* =========================================================================
+   Shokoofa AI - Keycloak login theme
+   Layered on top of keycloak.v2 (PatternFly v5). Only overrides/additions
+   live here; everything else is inherited from the parent theme.
+   ========================================================================= */
+
+:root {
+    /* Brand palette sampled from the Shokoofa AI logo */
+    --shokoofa-blue-900: #002b49;
+    --shokoofa-blue-700: #006b91;
+    --shokoofa-blue-500: #16a1c4;
+    --shokoofa-gold: #ffc83d;
+    --shokoofa-gold-dark: #d99e00;
+    --shokoofa-ink: #0b2033;
+
+    --shokoofa-radius-lg: 24px;
+    --shokoofa-radius-md: 12px;
+
+    --shokoofa-gradient: linear-gradient(135deg, var(--shokoofa-blue-900) 0%, var(--shokoofa-blue-700) 55%, var(--shokoofa-blue-500) 100%);
+
+    --keycloak-card-top-color: var(--shokoofa-blue-700);
+
+    font-synthesis: none;
+}
+
+html,
+body.login-pf {
+    height: 100%;
+}
+
+/* ---------------------------------------------------------------------
+   Page background
+   --------------------------------------------------------------------- */
+body.login-pf {
+    background:
+        url('../img/background.png') no-repeat center center fixed,
+        linear-gradient(160deg, #f4f8fb 0%, #eef4f9 45%, #f7f3ec 100%);
+    background-size: cover;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* ---------------------------------------------------------------------
+   Layout
+   --------------------------------------------------------------------- */
+.pf-v5-c-login__container {
+    grid-template-columns: minmax(auto, 30rem);
+    padding: 1.5rem;
+}
+
+.pf-v5-c-login__header {
+    margin-bottom: 1.25rem;
+}
+
+/* Logo: swap the realm display-name text for the Shokoofa AI wordmark */
+#kc-header-wrapper {
+    display: block;
+    width: 100%;
+    max-width: 230px;
+    height: 54px;
+    margin: 0 auto;
+    background-image: url('../img/CompanyLogo.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    text-indent: -9999px;
+    overflow: hidden;
+    color: transparent !important;
+    font-size: 0 !important;
+    letter-spacing: normal !important;
+}
+
+/* ---------------------------------------------------------------------
+   Card - soft glassmorphism look
+   --------------------------------------------------------------------- */
+.pf-v5-c-login__main {
+    background: rgba(255, 255, 255, 0.82);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: var(--shokoofa-radius-lg);
+    box-shadow: 0 25px 60px -15px rgba(0, 43, 73, 0.25), 0 4px 12px rgba(0, 43, 73, 0.08);
+    overflow: hidden;
+    border-top: none;
+    position: relative;
+}
+
+.pf-v5-c-login__main::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 5px;
+    background: var(--shokoofa-gradient);
+}
+
+.pf-v5-c-login__main-header {
+    border-top: none;
+    padding: 2.25rem 2rem 0.5rem;
+}
+
+.pf-v5-c-login__main-body {
+    padding: 0.5rem 2rem 1.75rem;
+}
+
+.pf-v5-c-login__main-footer {
+    padding: 0 2rem 2rem;
+}
+
+#kc-page-title {
+    color: var(--shokoofa-ink);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.pf-v5-c-login__main-footer-band {
+    border-top: 1px solid rgba(11, 32, 51, 0.08);
+}
+
+.pf-v5-c-login__main-footer-links-item a,
+.pf-v5-c-login__main-footer-band-item a,
+a {
+    color: var(--shokoofa-blue-700);
+}
+
+.pf-v5-c-login__main-footer-links-item a:hover,
+.pf-v5-c-login__main-footer-band-item a:hover,
+a:hover {
+    color: var(--shokoofa-blue-900);
+}
+
+/* ---------------------------------------------------------------------
+   Form controls
+   --------------------------------------------------------------------- */
+.pf-v5-c-form-control {
+    border-radius: var(--shokoofa-radius-md);
+    border: 1px solid rgba(11, 32, 51, 0.15);
+    background-color: #ffffff;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pf-v5-c-form-control:focus,
+.pf-v5-c-form-control:focus-within {
+    border-color: var(--shokoofa-blue-500);
+    box-shadow: 0 0 0 3px rgba(22, 161, 196, 0.18);
+    outline: none;
+}
+
+.pf-v5-c-form__label-text {
+    font-weight: 600;
+    color: var(--shokoofa-ink);
+}
+
+.pf-v5-c-check__input {
+    accent-color: var(--shokoofa-blue-700);
+}
+
+/* ---------------------------------------------------------------------
+   Buttons
+   --------------------------------------------------------------------- */
+.pf-v5-c-button.pf-m-primary {
+    background: var(--shokoofa-gradient);
+    border: none;
+    border-radius: var(--shokoofa-radius-md);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    box-shadow: 0 8px 20px -6px rgba(0, 107, 145, 0.55);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-v5-c-button.pf-m-primary:focus {
+    filter: brightness(1.06);
+    box-shadow: 0 10px 26px -6px rgba(0, 107, 145, 0.65);
+    transform: translateY(-1px);
+}
+
+.pf-v5-c-button.pf-m-primary:active {
+    transform: translateY(0);
+    filter: brightness(0.97);
+}
+
+.pf-v5-c-button.pf-m-secondary {
+    border-radius: var(--shokoofa-radius-md);
+    border-color: rgba(11, 32, 51, 0.2);
+    color: var(--shokoofa-ink);
+    font-weight: 600;
+}
+
+.pf-v5-c-button.pf-m-secondary:hover {
+    background-color: rgba(22, 161, 196, 0.08);
+    border-color: var(--shokoofa-blue-500);
+}
+
+.pf-v5-c-button.pf-m-link {
+    color: var(--shokoofa-blue-700);
+    font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------
+   Alerts / feedback
+   --------------------------------------------------------------------- */
+.pf-v5-c-alert {
+    border-radius: var(--shokoofa-radius-md);
+}
+
+/* ---------------------------------------------------------------------
+   Social provider buttons
+   --------------------------------------------------------------------- */
+.pf-v5-c-login__main-body [class*="kc-social-provider"],
+#kc-social-providers .pf-v5-c-button {
+    border-radius: var(--shokoofa-radius-md);
+}
+
+/* ---------------------------------------------------------------------
+   Dark mode
+   --------------------------------------------------------------------- */
+html.pf-v5-theme-dark body.login-pf {
+    background:
+        url('../img/background.png') no-repeat center center fixed,
+        linear-gradient(160deg, #061622 0%, #0b2033 60%, #10293c 100%);
+    background-size: cover;
+}
+
+html.pf-v5-theme-dark #kc-header-wrapper {
+    background-image: url('../img/CompanyLogoDark.png');
+}
+
+html.pf-v5-theme-dark .pf-v5-c-login__main {
+    background: rgba(11, 32, 51, 0.72);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.55);
+}
+
+html.pf-v5-theme-dark #kc-page-title {
+    color: #f4f8fb;
+}
+
+html.pf-v5-theme-dark .pf-v5-c-form__label-text {
+    color: #dbe7ee;
+}
+
+html.pf-v5-theme-dark .pf-v5-c-form-control {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: #f4f8fb;
+}
+
+html.pf-v5-theme-dark .pf-v5-c-login__main-footer-band {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------------------------------------------------------------------
+   Small screens
+   --------------------------------------------------------------------- */
+@media (max-width: 480px) {
+    .pf-v5-c-login__main-header {
+        padding: 1.75rem 1.25rem 0.5rem;
+    }
+
+    .pf-v5-c-login__main-body {
+        padding: 0.5rem 1.25rem 1.5rem;
+    }
+
+    .pf-v5-c-login__main-footer {
+        padding: 0 1.25rem 1.5rem;
+    }
+}
